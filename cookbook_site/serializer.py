@@ -13,11 +13,11 @@ from .models import (
 class RateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rate
-        fields = ["id", "recipe", "stars", "user"]
+        fields = ["id", "recipe", "stars"]
+        read_only_fields = ["user"]
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
-
     name = serializers.ReadOnlyField(source="ingredient.name")
 
     class Meta:
@@ -30,21 +30,15 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "username", "email", "password", "first_name", "last_name"]
+        fields = ["username", "email", "password", "first_name", "last_name"]
 
     def create(self, validated_data):
-        user = User.objects.create_user(
-            username=validated_data["username"],
-            email=validated_data["email"],
-            password=validated_data["password"],
-            first_name=validated_data["first_name"],
-            last_name=validated_data["last_name"],
-        )
+        user = User.objects.create_user(**validated_data)
         return user
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    ingredients = RecipeIngredientSerializer(many=True, read_only=True)
+    ingredients = RecipeIngredientSerializer(many=True)
     author = UserSerializer(read_only=True)
     average_rating = serializers.FloatField(read_only=True)
 
@@ -61,6 +55,22 @@ class RecipeSerializer(serializers.ModelSerializer):
             "average_rating",
         ]
 
+    def create(self, validated_data):
+        ingredients_data = validated_data.pop("ingredients")
+        recipe = Recipe.objects.create(**validated_data)
+
+        for data in ingredients_data:
+            ingredient_obj, _ = Ingredient.objects.get_or_create(name=data["name"])
+
+            RecipeIngredient.objects.create(
+                recipe=recipe,
+                ingredient=ingredient_obj,
+                amount=data["amount"],
+                unit=data["unit"],
+            )
+
+        return recipe
+
 
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
@@ -69,7 +79,6 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class SavedRecipesSerializer(serializers.ModelSerializer):
-
     recipe_details = RecipeSerializer(source="recipe", read_only=True)
 
     class Meta:
