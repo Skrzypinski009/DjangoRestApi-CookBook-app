@@ -1,4 +1,8 @@
-from rest_framework import viewsets
+from rest_framework import (
+    viewsets,
+    generics,
+    permissions,
+)
 from django.contrib.auth.models import User
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg, Value
@@ -9,6 +13,7 @@ from cookbook_site.serializer import (
     RecipeSerializer,
     RecipeIngredientSerializer,
     SavedRecipesSerializer,
+    UserSerializer,
 )
 from .models import (
     Ingredient,
@@ -21,14 +26,22 @@ from .models import (
 from .paginations import RecipePagination
 
 
-class IngredientVeiwSet(viewsets.ViewSet):
+class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()  # pyright: ignore
-    serializer_class = Ingredient
+    serializer_class = IngredientSerializer
 
 
-class RateViewSet(viewsets.ViewSet):
+class RateViewSet(viewsets.ModelViewSet):
     queryset = Rate.objects.all()  # pyright: ignore
     serializer_class = RateSerializer
+
+    def perform_create(self, serializer):
+        recipe = serializer.validated_data["recipe"]
+        Rate.objects.update_or_create(
+            user=self.request.user,
+            recipe=recipe,
+            defaults={"stars": serializer.validated_data["stars"]},
+        )
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -41,9 +54,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeSerializer
     pagination_class = RecipePagination
 
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
-class SavedRecipesViewSet(viewsets.ViewSet):
+
+class SavedRecipesViewSet(viewsets.ModelViewSet):
     queryset = SavedRecipes.objects.all()  # pyright: ignore
     serializer_class = SavedRecipesSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["user"]
+
+
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = [permissions.AllowAny]  # Każdy może założyć konto
+    serializer_class = UserSerializer
