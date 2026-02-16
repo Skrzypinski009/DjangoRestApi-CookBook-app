@@ -31,13 +31,20 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # MY APPS
     "cookbook_site",
+    # CORE
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # OTHER
+    "django_filters",
+    # REST
+    "rest_framework",
+    "rest_framework.authtoken",
 ]
 
 MIDDLEWARE = [
@@ -98,6 +105,15 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",  # Każdy musi być zalogowany
+    ],
+}
 
 
 # Internationalization
