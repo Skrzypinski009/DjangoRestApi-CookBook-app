@@ -1,3 +1,4 @@
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework import (
     viewsets,
     generics,
@@ -53,6 +54,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     serializer_class = RecipeSerializer
     pagination_class = RecipePagination
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
