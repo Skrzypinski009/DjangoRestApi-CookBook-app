@@ -25,6 +25,8 @@ from .models import (
     SavedRecipes,
 )
 from .paginations import RecipePagination
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from .permissions import IsOwnerOrReadOnly
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
@@ -54,7 +56,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     serializer_class = RecipeSerializer
     pagination_class = RecipePagination
+    # JSON for default data
+    # MultiPart for image
     parser_classes = [JSONParser, MultiPartParser, FormParser]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
