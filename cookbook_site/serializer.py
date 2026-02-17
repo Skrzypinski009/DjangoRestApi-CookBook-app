@@ -17,12 +17,24 @@ class RateSerializer(serializers.ModelSerializer):
         read_only_fields = ["user"]
 
 
+class IngredientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ingredient
+        fields = ["name"]
+
+
 class RecipeIngredientSerializer(serializers.ModelSerializer):
-    name = serializers.ReadOnlyField(source="ingredient.name")
+    name = serializers.CharField()
 
     class Meta:
         model = RecipeIngredient
         fields = ["name", "amount"]
+
+    def to_representation(self, instance):
+        return {
+            "name": instance.ingredient.name,
+            "amount": instance.amount,
+        }
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -39,6 +51,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class RecipeSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientSerializer(many=True)
+    # Author data is taken from request
     author = UserSerializer(read_only=True)
     average_rating = serializers.FloatField(read_only=True)
 
@@ -49,33 +62,31 @@ class RecipeSerializer(serializers.ModelSerializer):
             "title",
             "description",
             "author",
-            "instructions",
-            "image",
             "ingredients",
+            "instructions",
             "average_rating",
+            "image",
         ]
 
     def create(self, validated_data):
+        print(validated_data)
         ingredients_data = validated_data.pop("ingredients")
         recipe = Recipe.objects.create(**validated_data)
 
         for data in ingredients_data:
-            ingredient_obj, _ = Ingredient.objects.get_or_create(name=data["name"])
+            print(data)
+            ingredient_obj, _ = Ingredient.objects.get_or_create(
+                name=data["name"],
+            )
 
             RecipeIngredient.objects.create(
                 recipe=recipe,
                 ingredient=ingredient_obj,
                 amount=data["amount"],
-                unit=data["unit"],
+                # unit=data["unit"],
             )
 
         return recipe
-
-
-class IngredientSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Ingredient
-        fields = ["id", "name"]
 
 
 class SavedRecipesSerializer(serializers.ModelSerializer):
