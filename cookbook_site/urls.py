@@ -9,7 +9,7 @@ router.register(r"ingredients", IngredientViewSet)
 router.register(r"rates", RateViewSet)
 
 urlpatterns = [
-    path("api/", include(router.urls)),
-    path("api/register/", RegisterView.as_view(), name="register"),
-    path("api/login/", obtain_auth_token, name="login"),
+    path("", include(router.urls)),
+    path("register/", RegisterView.as_view(), name="register"),
+    path("login/", obtain_auth_token, name="login"),
 ]
