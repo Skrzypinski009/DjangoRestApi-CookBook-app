@@ -1,6 +1,5 @@
 from django.db import models
 from django.db.models import (
-    CASCADE,
     ForeignKey,
     ManyToManyField,
     CharField,
@@ -17,11 +16,11 @@ class Recipe(models.Model):
     description = TextField(max_length=250)
     author = ForeignKey(User, on_delete=models.CASCADE)
     instructions = TextField(max_length=400)
-    image = ImageField("recipe_img/")
+    image = ImageField("recipe_img/", blank=True, null=True)
 
 
 class Rate(models.Model):
-    recipe = ForeignKey(Recipe, on_delete=CASCADE, related_name="rates")
+    recipe = ForeignKey(Recipe, on_delete=models.CASCADE, related_name="rates")
     stars = IntegerField()
     user = ForeignKey(User, on_delete=models.CASCADE)
 
