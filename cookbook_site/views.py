@@ -4,6 +4,8 @@ from rest_framework import (
     generics,
     permissions,
 )
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from django.contrib.auth.models import User
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg, Value
@@ -25,7 +27,7 @@ from .models import (
     SavedRecipes,
 )
 from .paginations import RecipePagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from .permissions import IsOwnerOrReadOnly
 
 
@@ -64,6 +66,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        author_id = self.request.query_params.get("author")
+
+        if author_id is not None:
+            qs = qs.filter(author_id=author_id)
+        return qs
+
 
 class SavedRecipesViewSet(viewsets.ModelViewSet):
     queryset = SavedRecipes.objects.all()  # pyright: ignore
@@ -76,3 +86,15 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = [permissions.AllowAny]  # Każdy może założyć konto
     serializer_class = UserSerializer
+
+
+class UserMeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_data = {
+            "id": request.user.id,
+            "username": request.user.username,
+            "email": request.user.email,
+        }
+        return Response(user_data)
