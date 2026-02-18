@@ -35,7 +35,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     # MY APPS
-    "cookbook_site",
+    "api",
     # CORE
     "django.contrib.admin",
     "django.contrib.auth",

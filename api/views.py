@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg, Value
 from django.db.models.functions import Coalesce
-from cookbook_site.serializer import (
+from .serializers import (
     IngredientSerializer,
     RateSerializer,
     RecipeSerializer,
