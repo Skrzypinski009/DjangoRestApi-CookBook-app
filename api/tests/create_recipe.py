@@ -1,5 +1,5 @@
 import requests
-from login import login
+from login import login_interface
 
 BASE_URL = "http://127.0.0.1:8000/api"
 
@@ -44,7 +44,7 @@ def upload_image(recipe_id, headers):
 
 
 def main():
-    token = login()
+    token = login_interface()
     if token == None:
         return
 

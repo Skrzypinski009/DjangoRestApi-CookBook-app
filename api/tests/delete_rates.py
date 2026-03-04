@@ -1,20 +1,18 @@
 import requests
 from login import get_my_data, login_interface
-from get_recipes import get_user_recipes
-
-BASE_URL = f"http://127.0.0.1:8000/api/recipes"
+from get_rates import get_rates
 
 
-def delete_user_recipes(token, recipes_ids):
+def delete_user_rates(token, rates_ids):
     headers = {"Authorization": f"Token {token}"}
-    for r_id in recipes_ids:
-        del_url = f"{BASE_URL}/{r_id}/"
+    for r_id in rates_ids:
+        del_url = f"http://127.0.0.1:8000/api/rates/{r_id}/"
         response = requests.delete(del_url, headers=headers)
 
         if response.status_code == 204:
-            print(f"Recipe [{r_id}] delete: SUCCESS")
+            print(f"Rate [{r_id}] delete: SUCCESS")
         else:
-            print(f"Recipe [{r_id}] delete: ERROR")
+            print(f"Rate [{r_id}] delete: ERROR")
             print(f"Status code: {response.status_code}")
 
 
@@ -27,12 +25,12 @@ def main():
     if not user_data:
         return
 
-    recipes = get_user_recipes(token, user_data["id"])
-    if not recipes:
+    rates = get_rates(token)
+    if not rates:
         return
 
-    recipes_ids = [r["id"] for r in recipes["results"]]
-    delete_user_recipes(token, recipes_ids)
+    rates_ids = [r["id"] for r in rates]
+    delete_user_rates(token, rates_ids)
 
 
 if __name__ == "__main__":

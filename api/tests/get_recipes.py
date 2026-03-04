@@ -1,6 +1,6 @@
 import requests
 from pprint import pprint
-from login import login
+from login import login_interface, get_my_data
 
 BASE_URL = "http://127.0.0.1:8000/api/recipes/"
 
@@ -22,11 +22,15 @@ def get_user_recipes(token, user_id):
 
 
 def main():
-    token = login()
+    token = login_interface()
     if not token:
         return
 
-    recipes = get_recipes(token)
+    user_data = get_my_data(token)
+    if not user_data:
+        return
+
+    recipes = get_recipes(token, params={"author": user_data["id"]})
     if not recipes:
         return
 
