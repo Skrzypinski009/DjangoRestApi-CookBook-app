@@ -23,6 +23,9 @@ class Rate(models.Model):
     stars = IntegerField()
     user = ForeignKey(User, on_delete=models.CASCADE)
 
+    class Meta:
+        unique_together = ("user", "recipe")
+
 
 class Ingredient(models.Model):
     name = CharField(max_length=25, unique=True)
