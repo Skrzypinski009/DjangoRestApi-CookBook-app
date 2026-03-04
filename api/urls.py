@@ -7,6 +7,7 @@ from .views import (
     RateViewSet,
     RegisterView,
     UserMeView,
+    SavedRecipes,
 )
 
 router = DefaultRouter()

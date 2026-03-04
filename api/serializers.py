@@ -16,6 +16,23 @@ class RateSerializer(serializers.ModelSerializer):
         fields = ["id", "recipe", "stars"]
         read_only_fields = ["user"]
 
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        instance = self.instance
+
+        recipe = data.get("recipe", instance.recipe if instance else None)
+        user = self.context["request"].user
+
+        if recipe.author == user:
+            raise serializers.ValidationError("You cannot rate your recipes!")
+
+        if instance and "recipe" in data and data["recipe"] != instance.recipe:
+            raise serializers.ValidationError(
+                {"recipe": "You can't change recipe of that rate!"}
+            )
+
+        return data
+
 
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
@@ -90,9 +107,9 @@ class RecipeSerializer(serializers.ModelSerializer):
 
 
 class SavedRecipesSerializer(serializers.ModelSerializer):
-    recipe_details = RecipeSerializer(source="recipe", read_only=True)
+    # recipe_details = RecipeSerializer(source="recipe", read_only=True)
+
 
     class Meta:
         model = SavedRecipes
-        fields = ["user", "recipe", "recipe_details"]
-        read_only_fields = ["user"]
+        fields = ["user", "recipe"]
