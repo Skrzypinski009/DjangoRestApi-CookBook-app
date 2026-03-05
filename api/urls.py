@@ -7,13 +7,12 @@ from .views import (
     RateViewSet,
     RegisterView,
     UserMeView,
-    SavedRecipes,
 )
 
 router = DefaultRouter()
-router.register(r"recipes", RecipeViewSet)
-router.register(r"ingredients", IngredientViewSet)
-router.register(r"rates", RateViewSet)
+router.register(r"recipes", RecipeViewSet, basename="recipe")
+router.register(r"ingredients", IngredientViewSet, basename="ingredient")
+router.register(r"rates", RateViewSet, basename="rate")
 
 urlpatterns = [
     path("", include(router.urls)),

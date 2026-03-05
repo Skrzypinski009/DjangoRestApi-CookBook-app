@@ -74,7 +74,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
     def get_permissions(self):
-        if self.action == "save":
+        if self.action in ["save", "unsave", "saved"]:
             return [IsAuthenticated()]
         return super().get_permissions()
 
