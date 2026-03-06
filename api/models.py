@@ -30,6 +30,10 @@ class Rate(models.Model):
 class Ingredient(models.Model):
     name = CharField(max_length=25, unique=True)
 
+    @classmethod
+    def name_normalize(cls, name: str):
+        return name.lower().strip()
+
 
 class RecipeIngredient(models.Model):
     recipe = ForeignKey(Recipe, on_delete=models.CASCADE, related_name="ingredients")

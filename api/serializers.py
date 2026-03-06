@@ -1,4 +1,5 @@
 from rest_framework import fields, serializers
+from django.db import transaction
 from django.contrib.auth.models import User
 from .models import (
     Ingredient,
@@ -105,10 +106,36 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         return recipe
 
+    def update(self, instance, validated_data):
+        ingredients_data = validated_data.pop("ingredients", None)
+        instance = super().update(instance, validated_data)
+
+        relations = []
+
+        if ingredients_data is not None:
+            with transaction.atomic():
+                instance.ingredients.all().delete()
+
+                for ing in ingredients_data:
+                    ing_obj = Ingredient.objects.get_or_create(
+                        name=Ingredient.name_normalize(ing["name"]),
+                    )
+
+                    relations.append(
+                        RecipeIngredient(
+                            recipe=instance,
+                            ingredient=ing_obj,
+                            amount=ing["amount"],
+                        )
+                    )
+
+                RecipeIngredient.objects.bulk_create(relations)
+
+        return instance
+
 
 class SavedRecipesSerializer(serializers.ModelSerializer):
     # recipe_details = RecipeSerializer(source="recipe", read_only=True)
-
 
     class Meta:
         model = SavedRecipes
