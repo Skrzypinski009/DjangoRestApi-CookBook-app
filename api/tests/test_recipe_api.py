@@ -140,7 +140,7 @@ class RecipeAPITest(APITestCase):
         self.assertEqual(response.status_code, 200)
 
         results = response.json()["ingredients"]
-        self.assertContains(results, recipe_ingredients)
+        self.assertCountEqual(results, recipe_ingredients)
 
     def test_api_recipe_update_image(self):
         image_content = (

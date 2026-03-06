@@ -117,7 +117,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 instance.ingredients.all().delete()
 
                 for ing in ingredients_data:
-                    ing_obj = Ingredient.objects.get_or_create(
+                    ing_obj, _ = Ingredient.objects.get_or_create(
                         name=Ingredient.name_normalize(ing["name"]),
                     )
 
