@@ -35,6 +35,18 @@ class RecipeAPITest(APITestCase):
             )
             self.recipes.append(recipe)
 
+        self.other_user = User.objects.create_user(
+            username="other",
+            password="123",
+        )
+        self.other_recipe = Recipe.objects.create(
+            title="Test Recipe",
+            description="Test Description",
+            author=self.other_user,
+            instructions="Cook",
+            image=None,
+        )
+
     def test_api_recpe_get(self):
         url = reverse("api:recipe-list")
 
@@ -44,33 +56,33 @@ class RecipeAPITest(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response2.status_code, 200)
 
-        self.assertEqual(response.json()["count"], 12)
+        self.assertEqual(response.json()["count"], 13)
 
         # pagination test
         results = response.json()["results"]
         results2 = response2.json()["results"]
 
         self.assertEqual(len(results), 10)
-        self.assertEqual(len(results2), 2)
+        self.assertEqual(len(results2), 3)
 
-    def test_api_recipe_get_by_author(self):
-        other_user = User.objects.create(username="other", password="123")
+    def test_api_recipe_get_own_by_author(self):
         url = reverse("api:recipe-list")
 
         data = {"author": self.user.id}
-        data2 = {"author": other_user.id}
-
         response = self.client.get(url, data=data)
-        response2 = self.client.get(url, data=data2)
-
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response2.status_code, 200)
 
         results = response.json()["results"]
-        results2 = response2.json()["results"]
-
         self.assertEqual(len(results), 10)
-        self.assertEqual(len(results2), 0)
+
+    def test_api_recipe_get_other_by_author(self):
+        url = reverse("api:recipe-list")
+        data = {"author": self.other_user.id}
+        response = self.client.get(url, data=data)
+        self.assertEqual(response.status_code, 200)
+
+        results = response.json()["results"]
+        self.assertEqual(len(results), 1)
 
     def test_api_recipe_create(self):
         url = reverse("api:recipe-list")
@@ -93,6 +105,42 @@ class RecipeAPITest(APITestCase):
         ing_count = len(RecipeIngredient.objects.filter(recipe=recipe))
         self.assertEqual(ing_count, 2)
 
+    def test_api_recipe_update_own(self):
+        url = reverse("api:recipe-detail", kwargs={"pk": self.recipes[0].id})
+        new_title = "Updated Title"
+        data = {"title": new_title}
+        response = self.client.patch(url, data, format="json")
+
+        self.assertEqual(response.status_code, 200)
+
+        recipe = Recipe.objects.get(id=self.recipes[0].id)
+        self.assertEqual(recipe.title, new_title)
+
+    def test_api_recipe_update_other(self):
+        url = reverse("api:recipe-detail", kwargs={"pk": self.other_recipe.id})
+        new_title = "Updated Title"
+        data = {"title": new_title}
+        response = self.client.patch(url, data, format="json")
+
+        self.assertEqual(response.status_code, 403)
+
+        recipe = Recipe.objects.get(id=self.recipes[0].id)
+        self.assertNotEqual(recipe.title, new_title)
+
+    def test_api_recipe_update_ingredients(self):
+        recipe_ingredients = [
+            {"name": "egg", "amount": 5},
+            {"name": "kethup", "amount": 50},
+        ]
+
+        url = reverse("api:recipe-detail", kwargs={"pk": self.recipes[0].id})
+        data = {"ingredients": recipe_ingredients}
+        response = self.client.patch(url, data, format="json")
+        self.assertEqual(response.status_code, 200)
+
+        results = response.json()["ingredients"]
+        self.assertContains(results, new_ingredient)
+
     def test_api_recipe_update_image(self):
         image_content = (
             b"\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x00\x00\x00\x21\xf9"
@@ -112,6 +160,17 @@ class RecipeAPITest(APITestCase):
         response = self.client.patch(url, data=data, format="multipart")
 
         self.assertEqual(response.status_code, 200)
+
+    def test_api_recipe_delete_own(self):
+        url = reverse("api:recipe-detail", kwargs={"pk": self.recipes[0].id})
+        response = self.client.delete(url)
+
+        self.assertEqual(response.status_code, 204)
+
+    def test_api_recipe_delete_other(self):
+        url = reverse("api:recipe-detail", kwargs={"pk": self.other_recipe.id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 403)
 
     def test_api_recipe_save_unsave(self):
         self.recipe_save()
