@@ -136,10 +136,11 @@ class RecipeAPITest(APITestCase):
         url = reverse("api:recipe-detail", kwargs={"pk": self.recipes[0].id})
         data = {"ingredients": recipe_ingredients}
         response = self.client.patch(url, data, format="json")
+
         self.assertEqual(response.status_code, 200)
 
         results = response.json()["ingredients"]
-        self.assertContains(results, new_ingredient)
+        self.assertContains(results, recipe_ingredients)
 
     def test_api_recipe_update_image(self):
         image_content = (
