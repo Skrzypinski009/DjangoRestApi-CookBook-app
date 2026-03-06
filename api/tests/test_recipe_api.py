@@ -8,15 +8,15 @@ from api.models import Recipe, Ingredient, RecipeIngredient
 
 class RecipeAPITest(APITestCase):
     def setUp(self):
-        self.setUpAuth()
-        self.setUpRecipes()
+        self.setUp_auth()
+        self.setUp_recipes()
 
-    def setUpAuth(self):
+    def setUp_auth(self):
         self.user = User.objects.create(username="tester", password="123")
         self.token = Token.objects.create(user=self.user)
         self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
 
-    def setUpRecipes(self):
+    def setUp_recipes(self):
         ing, _ = Ingredient.objects.get_or_create(name="egg")
 
         self.recipes = []
